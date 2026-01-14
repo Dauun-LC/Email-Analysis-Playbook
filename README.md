@@ -59,3 +59,34 @@ Provide a repeatable, modular workflow for investigating suspicious emails, vali
 ---
 
 ## Workflow Overview
+```
+Start
+ ↓
+Header Normalization
+ ↓
+Routing Reconstruction
+ ↓
+Authentication Evaluation
+ ↓
+Origin Attribution
+ ↓
+Spoofing & Impersonation Checks
+ ↓
+Content & Intent Analysis
+ ↓
+Phishing Risk Evaluation
+ ↓
+Security Signal Scoring
+ ↓
+Final Verdict & Action
+End
+```
+
+---
+
+
+
+
+
+
+
