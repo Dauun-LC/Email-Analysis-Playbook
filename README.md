@@ -84,6 +84,76 @@ End
 
 ---
 
+## Investigation Modules
+
+For detailed technical documentation of each module, see [docs/detection-modules.md](docs/detection-modules.md)
+
+### Module 1: Header Normalization
+* Extract and order `Received:` headers
+* Normalize line folding (RFC 5322)
+* Validate timestamp formats
+* Extract envelope fields (`Return-Path`, `Message-ID`, `Reply-To`, `From`, `To`, `Date`)
+
+**Output:** `received_chain[]`, `header_integrity_status`, `timestamp_anomalies`
+
+### Module 2: Routing Reconstruction
+* Identify true sending path
+* Extract source IP, hostname, SMTP method, TLS version
+* Detect private IP hops
+* Flag reverse DNS mismatches
+
+**Output:** `origin_ip`, `origin_asn`, `submission_type`, `transport_security`
+
+### Module 3: Authentication Evaluation
+* Parse SPF, DKIM, DMARC, ARC chain
+* Validate alignment status
+* Check DKIM selector reputation
+
+**Authentication Decision Matrix:**
+| SPF | DKIM | DMARC | Verdict |
+|-----|------|--------|---------|
+| pass | pass | pass | Strong |
+| pass | pass | fail | Misaligned |
+| fail | fail | fail | Spoofed |
+| none | pass | none | Weak |
+
+**Output:** `spf_result`, `dkim_result`, `dmarc_result`, `alignment_status`
+
+### Module 4: Origin Attribution
+* ASN lookup and classification
+* Geo-IP lookup
+* Hosting provider identification
+* Threat intel enrichment
+
+**Classification Logic:**
+```
+IF ASN in (Google, Microsoft) → Major ESP
+ELSE IF ASN in (AWS, Azure, GCP) → Cloud Infrastructure
+ELSE IF ASN is Residential → End User
+ELSE IF ASN in known spam networks → High-Risk Infrastructure
+ELSE → Unknown
+```
+
+**Output:** `origin_type`, `origin_geo`, `origin_risk_level`, `ti_hits`
+
+### Module 5: Spoofing & Impersonation Detection
+* From vs Return-Path mismatch
+* DKIM domain vs From domain comparison
+* Lookalike domain detection (Levenshtein distance ≤ 2)
+* Homoglyph detection
+* Display-name impersonation
+* Reply-To mismatch
+* VIP impersonation rules
+
+**Spoofing Logic:**
+```
+IF dmarc_result == fail AND from_domain == protected_domain → Confirmed Spoofing
+ELSE IF lookalike_domain == true → Suspected Impersonation
+ELSE IF reply-to != from → Suspicious
+ELSE → No Spoofing Detected
+```
+
+
 
 
 
