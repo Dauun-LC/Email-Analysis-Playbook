@@ -153,6 +153,134 @@ ELSE IF reply-to != from → Suspicious
 ELSE → No Spoofing Detected
 ```
 
+**Output:** `spoofing_status`, `impersonation_type`
+
+### Module 6: Content & Intent Analysis
+* NLP keyword extraction (finance, urgency, credentials)
+* Link analysis (redirect chains, URL shorteners)
+* Attachment analysis (file type, macros, executable content)
+* Brand impersonation detection
+* Language anomalies (grammar, tone, locale mismatch)
+* Behavioral anomalies (new sender contacting exec)
+
+**Output:** `intent_category`, `content_risk_score`
+
+### Module 7: Phishing Risk Evaluation
+
+**Risk Indicators (weighted scoring):**
+| Indicator | Weight |
+|----------|--------|
+| External sender claiming to be internal | +25 |
+| Financial/credential request | +25 |
+| Urgency language | +15 |
+| Suspicious links | +25 |
+| Attachment with macros | +30 |
+| Reply-To mismatch | +15 |
+| Brand impersonation | +20 |
+| New sender contacting VIP | +20 |
+| Language mismatch | +10 |
+
+**Output:** `phishing_score`, `phishing_confidence`
+
+### Module 8: Security Signal Scoring
+
+**Aggregate risk scoring based on:**
+* Authentication strength
+* Origin trust level
+* Spoofing status
+* Phishing indicators
+* Transport security
+* Threat intel hits
+* Behavioral anomalies
+
+**Sample Scoring Logic:**
+```
+confidence_score = 100
+-30 if DMARC fail
+-20 if unauthenticated submission
+-15 if cloud infrastructure + consumer mailbox
+-25 if impersonation detected
+-20 if suspicious links
+-30 if malicious attachment
+-10 if timestamp anomalies
++10 if DKIM strong + ARC intact
+```
+
+### Module 9: Final Verdict Engine
+
+**Verdict Classification:**
+| Conditions | Verdict |
+|-----------|---------|
+| Strong auth + low phishing score | Legitimate |
+| Weak auth + no phishing indicators | Suspicious |
+| DMARC fail + impersonation | Phishing |
+| Exec target + finance theme | BEC |
+| Malicious attachment detected | Malware Delivery |
+| High threat intel hits | Phishing/Malware |
+
+### Module 10: Response Actions
+
+**Verdict-Based Actions:**
+| Verdict | Action |
+|---------|--------|
+| Legitimate | Close alert, document findings |
+| Suspicious | Monitor, warn user, flag for review |
+| Phishing | Quarantine email, block IOCs, notify user |
+| BEC | Escalate to IR, reset credentials, preserve evidence |
+| Malware Delivery | Quarantine, sandbox analysis, block IOCs, scan endpoints |
+
+---
+
+## Quick Reference: Tier 1 Analyst Checklist
+
+*60-second triage for frontline analysts*
+
+### 1. Check Authentication
+- [ ] SPF/DKIM/DMARC all pass? → **Low risk**
+- [ ] Any authentication failures? → **Medium/High risk**
+
+### 2. Check Sender Origin
+- [ ] IP from major ESP (Google, Microsoft)?
+- [ ] Cloud infrastructure?
+- [ ] Residential ISP?
+- [ ] Threat intel hits?
+
+### 3. Check for Spoofing
+- [ ] From ≠ Return-Path?
+- [ ] Lookalike domain?
+- [ ] Reply-To mismatch?
+- [ ] VIP impersonation attempt?
+
+### 4. Check Content
+- [ ] Suspicious links present?
+- [ ] Attachments (especially with macros)?
+- [ ] Urgency language?
+- [ ] Financial/credential requests?
+
+### 5. Quick Risk Score
+```
+Start at 100
+-30 DMARC fail
+-20 unauthenticated submission
+-25 impersonation detected
+-25 suspicious links
+-30 malicious attachment
+```
+
+### 6. Determine Verdict
+* **>80** → Likely Legitimate
+* **50-80** → Suspicious
+* **<50** → Phishing/BEC/Malware
+
+### 7. Take Action
+* **Legitimate** → Close alert
+* **Suspicious** → Warn user
+* **Phishing** → Quarantine + block IOCs
+* **BEC** → Escalate to IR team
+
+---
+
+
 
 
 
