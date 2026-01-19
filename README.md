@@ -280,6 +280,97 @@ Start at 100
 
 ---
 
+## Tools & Resources
+
+### Header Analysis
+* **MXToolbox**: Header analyzer and SPF/DKIM checker
+* **Google Admin Toolbox**: Message header analyzer
+* **dmarcian**: DMARC policy checker
+
+### IP/Domain Intelligence
+* **AbuseIPDB**: IP reputation lookup
+* **VirusTotal**: URL/domain/IP reputation
+* **URLScan.io**: URL analysis and screenshots
+* **Whois**: Domain registration lookup
+
+### Email Security Testing
+* **PhishTool**: Automated phishing analysis
+* **ANY.RUN**: Interactive malware sandbox
+* **Hybrid Analysis**: Automated malware analysis
+
+### OSINT
+* **Have I Been Pwned**: Check for compromised credentials
+* **Hunter.io**: Email verification and domain search
+* **SecurityTrails**: Historical DNS data
+
+---
+
+## Validation Checklist
+
+- [ ] Verified authentication results (SPF, DKIM, DMARC)
+- [ ] Confirmed sender origin and infrastructure
+- [ ] Checked for domain/display name spoofing
+- [ ] Analyzed links and attachments
+- [ ] Reviewed threat intel sources
+- [ ] Assessed phishing risk score
+- [ ] Determined final verdict
+- [ ] Documented IOCs
+- [ ] Executed appropriate response action
+- [ ] Notified affected users (if applicable)
+
+---
+
+## Machine Learning Feature Set
+
+*For organizations implementing ML-based email threat detection*
+
+### Header-Based Features (Weight)
+* SPF result (0.15)
+* DKIM result (0.20)
+* DMARC result (0.20)
+* ARC chain validity (0.05)
+* Received chain length (0.05)
+* Timestamp anomalies (0.05)
+
+### Routing Features
+* ASN reputation (0.10)
+* Reverse DNS mismatch (0.05)
+* TLS version/cipher strength (0.05)
+
+### Content Features
+* NLP phishing keyword score (0.20)
+* Link risk score (0.25)
+* Attachment risk score (0.30)
+* Brand impersonation score (0.10)
+
+### Behavioral Features
+* Sender novelty (0.10)
+* VIP targeting (0.10)
+* Reply-To mismatch (0.10)
+
+**ML Output:** `ml_risk_score` (0-1), `ml_confidence` (0-1)
+
+---
+
+## Playbook Maintenance
+
+**Version:** 1.0  
+**Owner:** SOC Team  
+**Review Cycle:** Quarterly  
+**Last Updated:** 2026-01-14  
+
+### Version History
+* **1.0** (2026-01-14): Initial release
+
+---
+
+## Contributing
+
+This playbook is designed to be reusable and adaptable. Contributions, improvements, and real-world case studies are welcome via pull requests.
+
+## License
+
+MIT License - See LICENSE file for details.
 
 
 
