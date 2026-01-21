@@ -150,3 +150,99 @@ AND submission_type == "Unauthenticated":
 ```
 
 ---
+## Module 3: Authentication Evaluation
+
+### Purpose
+Validate email authentication mechanisms to determine sender legitimacy.
+
+### Technical Actions
+
+#### 1. Parse SPF Result
+```
+SEARCH headers for "Received-SPF:"
+EXTRACT result: pass | fail | softfail | neutral | none | temperror | permerror
+
+IF result == "pass":
+    spf_aligned = (envelope_from_domain == header_from_domain)
+```
+
+#### 2. Parse DKIM Result
+```
+SEARCH headers for "DKIM-Signature:"
+FOR each DKIM signature:
+    EXTRACT:
+    - d= (signing domain)
+    - s= (selector)
+    - a= (algorithm)
+    - b= (signature hash)
+
+SEARCH for "Authentication-Results:"
+EXTRACT dkim= result
+
+IF dkim == "pass":
+    dkim_aligned = (signing_domain == header_from_domain)
+```
+
+#### 3. Parse DMARC Result
+```
+SEARCH for "Authentication-Results:"
+EXTRACT dmarc= result
+
+PARSE DMARC policy:
+- p= (policy: none | quarantine | reject)
+- pct= (percentage)
+- rua= (aggregate reporting address)
+```
+
+#### 4. Validate ARC Chain
+```
+IF "ARC-Authentication-Results:" present:
+    FOR each ARC set (i=1, i=2, ...):
+        VALIDATE chain integrity
+        IF break detected:
+            FLAG arc_chain_broken
+```
+
+#### 5. Alignment Check
+```
+alignment_status = {
+    "spf_aligned": envelope_from_domain == header_from_domain,
+    "dkim_aligned": dkim_signing_domain == header_from_domain,
+    "dmarc_pass": (spf_aligned OR dkim_aligned) AND dmarc == "pass"
+}
+```
+
+### Authentication Decision Matrix
+
+| SPF | DKIM | DMARC | Alignment | Verdict |
+|-----|------|-------|-----------|---------|
+| pass | pass | pass | both | **Strong Authentication** |
+| pass | pass | fail | partial | Misaligned - Investigate |
+| fail | fail | fail | none | **Spoofed** |
+| none | pass | none | dkim only | Weak - Sender uses DKIM only |
+| softfail | none | none | none | Weak - No authentication |
+| pass | none | pass | spf only | Partial - SPF aligned |
+
+### Output Variables
+* `spf_result` - SPF check result
+* `dkim_result` - DKIM verification result
+* `dmarc_result` - DMARC policy evaluation
+* `arc_result` - ARC chain validation
+* `alignment_status` - Object with alignment flags
+* `authentication_score` - Numeric score (0-100)
+
+### Scoring Logic
+```
+score = 0
+
+IF spf_result == "pass": score += 25
+IF dkim_result == "pass": score += 35
+IF dmarc_result == "pass": score += 40
+
+IF spf_aligned: score += 10
+IF dkim_aligned: score += 10
+
+authentication_score = score
+```
+
+---
