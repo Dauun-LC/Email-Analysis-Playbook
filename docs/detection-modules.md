@@ -338,3 +338,114 @@ ELSE IF origin_type == "Major_ESP" AND authentication_score > 75:
 * `sender_novelty` - Boolean flag for new senders
 
 ---
+
+## Module 5: Spoofing & Impersonation Detection
+
+### Purpose
+Detect attempts to impersonate legitimate senders or organizations.
+
+### Technical Actions
+
+#### 1. Envelope vs Header Comparison
+```
+envelope_from = Return-Path
+header_from = From header
+
+IF envelope_from != header_from:
+    FLAG from_mismatch
+    
+    IF dmarc_result == "fail":
+        spoofing_status = "Confirmed"
+    ELSE:
+        spoofing_status = "Suspected"
+```
+
+#### 2. Lookalike Domain Detection
+```
+FUNCTION calculate_levenshtein_distance(domain1, domain2):
+    # Standard Levenshtein algorithm
+    return edit_distance
+
+FOR each protected_domain in organization_domains:
+    distance = calculate_levenshtein_distance(sender_domain, protected_domain)
+    
+    IF distance <= 2:
+        FLAG lookalike_domain
+        lookalike_score = (2 - distance) * 50  # Higher score = closer match
+```
+
+#### 3. Homoglyph Detection
+```
+homoglyph_map = {
+    'a': ['а', 'ɑ', 'α'],  # Cyrillic/Greek lookalikes
+    'o': ['о', 'ο', '0'],
+    'e': ['е', 'ε'],
+    # ... full mapping
+}
+
+FOR each character in sender_domain:
+    IF character in homoglyph_map.values():
+        FLAG homoglyph_detected
+```
+
+#### 4. Display Name Impersonation
+```
+display_name = extract_display_name(From header)
+
+FOR each vip in vip_list:
+    IF display_name.lower() == vip.name.lower():
+        IF sender_domain NOT IN vip.authorized_domains:
+            FLAG display_name_impersonation
+            impersonation_target = vip
+```
+
+#### 5. Reply-To Analysis
+```
+IF Reply-To header exists:
+    IF Reply-To domain != From domain:
+        FLAG reply_to_mismatch
+        
+        IF Reply-To domain in freemail_providers:
+            FLAG reply_to_suspicious
+```
+
+#### 6. HELO Domain Validation
+```
+IF helo_domain != sending_domain:
+    FLAG helo_mismatch
+    
+    IF helo_domain in ["localhost", "127.0.0.1", "unknown"]:
+        FLAG helo_spoofing
+```
+
+### Spoofing Classification Logic
+```
+IF dmarc_result == "fail" AND from_domain == protected_domain:
+    spoofing_status = "Confirmed"
+    impersonation_type = "Domain_Spoofing"
+    
+ELSE IF lookalike_domain == TRUE:
+    spoofing_status = "Suspected"
+    impersonation_type = "Lookalike_Domain"
+    
+ELSE IF display_name_impersonation == TRUE:
+    spoofing_status = "Suspected"
+    impersonation_type = "Display_Name"
+    
+ELSE IF reply_to_mismatch == TRUE:
+    spoofing_status = "Suspicious"
+    impersonation_type = "Reply-To_Redirect"
+    
+ELSE:
+    spoofing_status = "None_Detected"
+```
+
+### Output Variables
+* `spoofing_status` - "Confirmed" | "Suspected" | "Suspicious" | "None_Detected"
+* `impersonation_type` - Type of impersonation detected
+* `lookalike_score` - Similarity score (0-100)
+* `impersonation_target` - VIP/organization being impersonated
+* `from_mismatch` - Boolean flag
+* `reply_to_mismatch` - Boolean flag
+
+---
