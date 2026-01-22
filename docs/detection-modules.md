@@ -246,3 +246,95 @@ authentication_score = score
 ```
 
 ---
+
+## Module 4: Origin Attribution
+
+### Purpose
+Contextualize the infrastructure used to send the email.
+
+### Technical Actions
+
+#### 1. ASN Lookup
+```
+QUERY ASN database for origin_ip
+EXTRACT:
+- asn_number
+- asn_org
+- asn_country
+```
+
+#### 2. Infrastructure Classification
+```
+IF asn_org IN ["GOOGLE", "MICROSOFT", "YAHOO"]:
+    origin_type = "Major_ESP"
+ELSE IF asn_org IN ["AMAZON-AES", "MICROSOFT-CORP-MSN-AS-BLOCK", "GOOGLE-CLOUD-PLATFORM"]:
+    origin_type = "Cloud_Infrastructure"
+ELSE IF asn_org contains "RESIDENTIAL" OR "BROADBAND":
+    origin_type = "Residential_ISP"
+ELSE IF asn_number IN known_spam_asns:
+    origin_type = "High_Risk_Infrastructure"
+ELSE:
+    origin_type = "Unknown"
+```
+
+#### 3. Geo-IP Lookup
+```
+QUERY GeoIP database for origin_ip
+EXTRACT:
+- country
+- region
+- city
+- coordinates
+```
+
+#### 4. Threat Intel Enrichment
+```
+QUERY threat intel feeds:
+- AbuseIPDB (reputation score)
+- VirusTotal (detection count)
+- Talos (reputation category)
+- Custom blocklists
+
+ti_hits = {
+    "abuseipdb_score": score,
+    "vt_detections": count,
+    "talos_category": category,
+    "blocklist_hits": [list]
+}
+```
+
+#### 5. Historical Analysis
+```
+QUERY email logs for:
+- Previous emails from this IP
+- Previous emails from this domain
+- Frequency and pattern
+
+IF first_seen:
+    sender_novelty = TRUE
+```
+
+### Classification Logic
+```
+risk_level = "Low"
+
+IF origin_type == "High_Risk_Infrastructure":
+    risk_level = "High"
+ELSE IF ti_hits["abuseipdb_score"] > 50:
+    risk_level = "High"
+ELSE IF origin_type == "Cloud_Infrastructure" AND submission_type == "Unauthenticated":
+    risk_level = "Medium"
+ELSE IF origin_type == "Residential_ISP":
+    risk_level = "Medium"
+ELSE IF origin_type == "Major_ESP" AND authentication_score > 75:
+    risk_level = "Low"
+```
+
+### Output Variables
+* `origin_type` - Infrastructure classification
+* `origin_geo` - Geographic location object
+* `origin_risk_level` - "Low" | "Medium" | "High"
+* `ti_hits` - Threat intel results object
+* `sender_novelty` - Boolean flag for new senders
+
+---
