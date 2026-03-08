@@ -447,5 +447,143 @@ ELSE:
 * `impersonation_target` - VIP/organization being impersonated
 * `from_mismatch` - Boolean flag
 * `reply_to_mismatch` - Boolean flag
+---
+
+## Module 6: Content & Intent Analysis
+
+### Purpose
+Analyze email body and attachments to determine sender intent and threat level.
+
+### Technical Actions
+
+#### 1. NLP Keyword Extraction
+```
+keyword_categories = {
+    "financial": ["invoice", "payment", "wire transfer", "account", "bank", "urgent payment"],
+    "credentials": ["verify account", "confirm password", "login", "reset password", "suspended"],
+    "urgency": ["immediate", "urgent", "within 24 hours", "action required", "expires"],
+    "authority": ["CEO", "CFO", "IT Department", "Security Team", "Manager"],
+    "threats": ["account locked", "suspended", "legal action", "termination"]
+}
+
+FOR each category, keywords in keyword_categories:
+    matches = count_matches(email_body, keywords)
+    keyword_scores[category] = matches * weight
+```
+
+#### 2. Link Analysis
+```
+FOR each URL in email_body:
+    # Extract and analyze
+    parsed_url = parse_url(URL)
+    
+    # Check for URL shorteners
+    IF parsed_url.domain IN url_shorteners:
+        FLAG url_shortener_detected
+        
+    # Check for mismatched display text
+    IF display_text != actual_url:
+        FLAG url_text_mismatch
+        
+    # Follow redirect chain
+    final_url = follow_redirects(URL)
+    
+    # Check against threat intel
+    url_reputation = check_url_reputation(final_url)
+    
+    IF url_reputation == "malicious":
+        FLAG malicious_link
+```
+
+#### 3. Attachment Analysis
+```
+FOR each attachment in email:
+    file_info = {
+        "filename": attachment.name,
+        "mime_type": attachment.content_type,
+        "size": attachment.size,
+        "hash_md5": calculate_md5(attachment.data),
+        "hash_sha256": calculate_sha256(attachment.data)
+    }
+    
+    # Check file extension vs MIME type
+    IF stated_extension != actual_mime_type:
+        FLAG extension_mismatch
+    
+    # Check for dangerous file types
+    IF extension IN [".exe", ".scr", ".bat", ".cmd", ".vbs", ".js"]:
+        FLAG dangerous_filetype
+    
+    # Check for macro-enabled documents
+    IF extension IN [".docm", ".xlsm", ".pptm"]:
+        FLAG macro_document
+        
+        IF contains_macros(attachment.data):
+            FLAG macros_detected
+    
+    # Threat intel hash lookup
+    hash_reputation = check_file_hash(file_info["hash_sha256"])
+```
+
+#### 4. Brand Impersonation Detection
+```
+brand_indicators = {
+    "microsoft": ["microsoft", "office365", "outlook", "teams"],
+    "google": ["google", "gmail", "drive", "workspace"],
+    "paypal": ["paypal", "payment"],
+    # ... etc
+}
+
+FOR brand, keywords in brand_indicators:
+    IF any(keyword in email_body.lower() OR keyword in subject.lower()):
+        IF sender_domain NOT IN brand.authorized_domains:
+            FLAG brand_impersonation
+            impersonated_brand = brand
+```
+
+#### 5. Language Analysis
+```
+# Detect language mismatches
+detected_language = detect_language(email_body)
+expected_language = get_user_locale(recipient)
+
+IF detected_language != expected_language:
+    FLAG language_mismatch
+
+# Grammar and spelling analysis
+grammar_errors = count_grammar_errors(email_body)
+spelling_errors = count_spelling_errors(email_body)
+
+IF grammar_errors > threshold OR spelling_errors > threshold:
+    FLAG poor_quality_writing
+```
+
+### Intent Classification Logic
+```
+intent_score = {
+    "financial": 0,
+    "credentials": 0,
+    "malware": 0,
+    "marketing": 0
+}
+
+# Score based on indicators
+IF keyword_scores["financial"] > 3: intent_score["financial"] += 30
+IF keyword_scores["credentials"] > 2: intent_score["credentials"] += 30
+IF malicious_link OR dangerous_filetype: intent_score["malware"] += 40
+IF url_shortener_detected AND urgency_keywords: intent_score["phishing"] += 25
+
+# Determine primary intent
+intent_category = max(intent_score, key=intent_score.get)
+content_risk_score = intent_score[intent_category]
+```
+
+### Output Variables
+* `intent_category` - "Financial" | "Credential_Theft" | "Malware_Delivery" | "Marketing" | "Spam" | "Unknown"
+* `content_risk_score` - Numeric score (0-100)
+* `keyword_scores` - Object with category scores
+* `link_analysis` - Array of URL analysis results
+* `attachment_analysis` - Array of attachment analysis results
+* `impersonated_brand` - Brand being impersonated (if any)
 
 ---
