@@ -587,3 +587,69 @@ content_risk_score = intent_score[intent_category]
 * `impersonated_brand` - Brand being impersonated (if any)
 
 ---
+
+## Module 7: Phishing Risk Evaluation
+
+### Purpose
+Aggregate indicators to calculate overall phishing risk.
+
+### Weighted Scoring System
+```python
+phishing_score = 0
+
+# Identity indicators
+if spoofing_status == "Confirmed": phishing_score += 30
+if lookalike_domain: phishing_score += 25
+if display_name_impersonation: phishing_score += 20
+if reply_to_mismatch: phishing_score += 15
+
+# Content indicators
+if intent_category == "Credential_Theft": phishing_score += 25
+if intent_category == "Financial": phishing_score += 25
+if keyword_scores["urgency"] > 2: phishing_score += 15
+if brand_impersonation: phishing_score += 20
+
+# Technical indicators
+if malicious_link: phishing_score += 30
+if dangerous_filetype: phishing_score += 25
+if macros_detected: phishing_score += 30
+if url_shortener_detected: phishing_score += 10
+
+# Behavioral indicators
+if sender_novelty AND vip_recipient: phishing_score += 20
+if language_mismatch: phishing_score += 10
+if poor_quality_writing: phishing_score += 10
+
+# Authentication deductions
+if authentication_score > 80: phishing_score -= 20
+if origin_type == "Major_ESP": phishing_score -= 15
+
+# Cap at 100
+phishing_score = min(phishing_score, 100)
+```
+
+### Confidence Calculation
+```python
+confidence_factors = {
+    "strong_authentication": authentication_score > 75,
+    "confirmed_spoofing": spoofing_status == "Confirmed",
+    "known_malicious": ti_hits["vt_detections"] > 5,
+    "multiple_indicators": (malicious_link + dangerous_filetype + lookalike_domain) >= 2
+}
+
+confidence_score = 50  # Base confidence
+
+if confidence_factors["strong_authentication"]: confidence_score += 20
+if confidence_factors["confirmed_spoofing"]: confidence_score += 30
+if confidence_factors["known_malicious"]: confidence_score += 30
+if confidence_factors["multiple_indicators"]: confidence_score += 20
+
+confidence_score = min(confidence_score, 100)
+```
+
+### Output Variables
+* `phishing_score` - Risk score (0-100)
+* `phishing_confidence` - Confidence in assessment (0-100)
+* `contributing_factors` - Array of indicators that triggered
+
+---
