@@ -653,3 +653,74 @@ confidence_score = min(confidence_score, 100)
 * `contributing_factors` - Array of indicators that triggered
 
 ---
+
+## Module 8: Security Signal Scoring
+
+### Purpose
+Create a composite security score from all available signals.
+
+### Composite Scoring Algorithm
+```python
+security_signals = {
+    "authentication": authentication_score * 0.25,
+    "origin_trust": (100 - origin_risk_level_numeric) * 0.15,
+    "spoofing": (100 - spoofing_confidence) * 0.20,
+    "content": (100 - content_risk_score) * 0.20,
+    "phishing": (100 - phishing_score) * 0.20
+}
+
+composite_score = sum(security_signals.values())
+
+# Adjust for threat intel
+if ti_hits["abuseipdb_score"] > 75:
+    composite_score -= 30
+if ti_hits["vt_detections"] > 10:
+    composite_score -= 40
+
+# Normalize to 0-100
+composite_score = max(0, min(100, composite_score))
+```
+
+### Output Variables
+* `composite_score` - Overall security score (0-100, higher = safer)
+* `signal_breakdown` - Object showing individual signal contributions
+
+---
+
+## Module 9: Final Verdict Engine
+
+### Purpose
+Translate technical scores into actionable verdicts.
+
+### Verdict Logic
+```python
+def determine_verdict(signals):
+    # Critical indicators override everything
+    if signals["malicious_link"] and signals["credentials_requested"]:
+        return "Phishing"
+    
+    if signals["dangerous_filetype"] and signals["ti_hits"]["vt_detections"] > 5:
+        return "Malware_Delivery"
+    
+    if signals["spoofing_status"] == "Confirmed" and signals["financial_request"]:
+        return "BEC"
+    
+    # Score-based classification
+    if signals["composite_score"] >= 80:
+        return "Legitimate"
+    elif signals["composite_score"] >= 50:
+        return "Suspicious"
+    elif signals["phishing_score"] >= 70:
+        return "Phishing"
+    elif signals["authentication_score"] < 30 and signals["origin_type"] == "High_Risk":
+        return "Spam"
+    else:
+        return "Unknown_Needs_Review"
+```
+
+### Output Variables
+* `final_verdict` - Classification result
+* `verdict_confidence` - Confidence in verdict (0-100)
+* `escalation_required` - Boolean flag
+
+---
