@@ -724,3 +724,145 @@ def determine_verdict(signals):
 * `escalation_required` - Boolean flag
 
 ---
+
+## Module 10: Response Actions
+
+### Purpose
+Map verdicts to specific response actions.
+
+### Action Matrix
+```python
+response_actions = {
+    "Legitimate": {
+        "action": "deliver",
+        "notify_user": False,
+        "quarantine": False,
+        "block_sender": False,
+        "create_ticket": False
+    },
+    "Suspicious": {
+        "action": "deliver_with_banner",
+        "notify_user": True,
+        "quarantine": False,
+        "block_sender": False,
+        "create_ticket": True,
+        "banner_text": "This email appears suspicious. Exercise caution with links and attachments."
+    },
+    "Phishing": {
+        "action": "quarantine",
+        "notify_user": True,
+        "quarantine": True,
+        "block_sender": True,
+        "create_ticket": True,
+        "extract_iocs": True,
+        "notify_security_team": True
+    },
+    "BEC": {
+        "action": "quarantine",
+        "notify_user": True,
+        "quarantine": True,
+        "block_sender": True,
+        "create_ticket": True,
+        "escalate_to_ir": True,
+        "notify_executives": True,
+        "preserve_evidence": True
+    },
+    "Malware_Delivery": {
+        "action": "quarantine",
+        "notify_user": True,
+        "quarantine": True,
+        "block_sender": True,
+        "sandbox_attachments": True,
+        "block_iocs_at_perimeter": True,
+        "scan_recipient_endpoint": True,
+        "create_ticket": True
+    }
+}
+```
+
+### IOC Extraction
+```python
+def extract_iocs(email_data):
+    iocs = {
+        "ips": [email_data["origin_ip"]],
+        "domains": [email_data["sender_domain"]],
+        "urls": email_data["extracted_urls"],
+        "file_hashes": [att["hash_sha256"] for att in email_data["attachments"]],
+        "email_addresses": [email_data["envelope_from"], email_data["reply_to"]]
+    }
+    
+    # Remove duplicates and None values
+    for key in iocs:
+        iocs[key] = list(set(filter(None, iocs[key])))
+    
+    return iocs
+```
+
+### Output Variables
+* `recommended_action` - Primary action to take
+* `action_details` - Object with specific action flags
+* `ioc_list` - Extracted indicators of compromise
+* `notification_targets` - List of users/teams to notify
+
+---
+
+## Integration Notes
+
+### SIEM/SOAR Integration
+Each module outputs structured data that can be consumed by automation platforms:
+```json
+{
+  "module_name": "authentication_evaluation",
+  "timestamp": "2026-01-14T15:30:00Z",
+  "inputs": {...},
+  "outputs": {
+    "spf_result": "pass",
+    "dkim_result": "pass",
+    "dmarc_result": "pass",
+    "authentication_score": 90
+  },
+  "flags": [],
+  "next_module": "origin_attribution"
+}
+```
+
+### Error Handling
+All modules should implement:
+* Graceful degradation when data is missing
+* Logging of parsing errors
+* Default "unknown" values when unable to determine
+
+### Performance Considerations
+* Cache threat intel lookups (TTL: 1 hour)
+* Batch process multiple emails when possible
+* Implement timeout limits for external API calls (5 seconds max)
+
+---
+
+## Appendix: Regular Expressions
+
+### Email Address Extraction
+```regex
+[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
+```
+
+### IPv4 Address
+```regex
+\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b
+```
+
+### IPv6 Address
+```regex
+(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4})
+```
+
+### URL Extraction
+```regex
+https?://[^\s<>"]+|www\.[^\s<>"]+
+```
+
+---
+
+**Document Version:** 1.0  
+**Last Updated:** 2026-03-8 
+**Maintained By:** SOC Team
