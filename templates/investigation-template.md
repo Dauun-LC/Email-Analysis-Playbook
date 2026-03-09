@@ -1,6 +1,4 @@
-# Email Investigation Template
-
-# Email Investigation Report
+# Email Investigation Template/Report
 
 **Case ID:** [AUTO-GENERATED or MANUAL]  
 **Analyst:** [Your Name]  
