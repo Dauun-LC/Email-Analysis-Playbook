@@ -1,0 +1,83 @@
+================================================================
+FAKE PHISHING EMAIL - FOR TRAINING AND PORTFOLIO USE ONLY
+This is a simulated phishing scenario created for SOC analyst training and portfolio purposes. The recipient email address dauun-lc@labcommand.com is fictitious — labcommand.com is the author's domain but this mailbox does not exist. The attacker domain microsofft-accounts.com and associated infrastructure are fictional. Real platform names including Microsoft, AbuseIPDB, VirusTotal, ANY.RUN, and URLScan.io are referenced for educational accuracy only. IP 185.220.101.47 is a real Tor exit node included for realism.
+
+================================================================
+
+--- RAW EMAIL HEADERS ---
+
+Return-Path: <no-reply@microsofft-accounts.com>
+Received: from mail.microsofft-accounts.com (mail.microsofft-accounts.com [185.220.101.47])
+        by mx.labcoomand.com with ESMTP id a12sm3456789pjl.18
+        for < dauun-lc@labcommand.com>;
+        Mon, 10 Mar 2026 09:14:32 -0500 (EST)
+Received: from [192.168.1.5] (unknown [185.220.101.47])
+        by mail.microsofft-accounts.com (Postfix) with ESMTP id 7F3A1B2C4D
+        for < dauun-lc@labcommand.com>;
+        Mon, 10 Mar 2026 14:14:28 +0000 (UTC)
+Authentication-Results: mx.labcommand.com;
+       dkim=fail (signature verification failed) header.i=@microsofft-accounts.com;
+       spf=fail (domain of microsofft-accounts.com does not designate 185.220.101.47 as permitted sender)
+             smtp.mailfrom=microsofft-accounts.com;
+       dmarc=fail (p=NONE sp=NONE dis=NONE) header.from=microsofft-accounts.com
+Received-SPF: fail (mx.labcommand.com: domain of microsofft-accounts.com does not designate
+    185.220.101.47 as permitted sender) client-ip=185.220.101.47;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=microsofft-accounts.com; s=default;
+        h=from:to:subject:date:message-id:mime-version:content-type;
+        bh=Xk2pL9mNqR7sT4uV8wY1zA3bC5dE6fG7hI8jK9lM0n=;
+        b=INVALIDINVALIDINVALIDINVALIDINVALIDINVALIDINVALID==
+Message-ID: <20260310141428.7F3A1B2C4D@mail.microsofft-accounts.com>
+Date: Mon, 10 Mar 2026 14:14:28 +0000
+From: "Microsoft Account Team" <no-reply@microsofft-accounts.com>
+To:  dauun-lc@labcommand.com
+Reply-To: support-recovery@gmail.com
+Subject: [URGENT] Your Microsoft 365 Account Has Been Suspended - Action Required
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+X-Mailer: PHPMailer 6.6.3
+
+--- EMAIL BODY ---
+
+Subject: [URGENT] Your Microsoft 365 Account Has Been Suspended - Action Required
+
+Dear Microsoft 365 User,
+
+We have detected unusual sign-in activity on your Microsoft 365 account associated
+with this email address. To protect your organization, we have temporarily suspended
+your account access.
+
+YOUR ACCOUNT WILL BE PERMANENTLY DELETED IN 24 HOURS IF YOU DO NOT VERIFY.
+
+To restore your account immediately, please verify your identity by clicking the
+link below:
+
+>> VERIFY MY ACCOUNT NOW <<
+   http://short[.]example.com/ms365-verify-acct-9271
+
+If you do not verify within 24 hours, your account and all associated data
+including emails, OneDrive files, and Teams messages will be permanently deleted
+and cannot be recovered.
+
+This action was triggered by:
+- Sign-in attempt from Russia (Moscow) at 09:02 AM EST
+- Multiple failed authentication attempts
+- Suspicious device access
+
+If you believe this is an error, you must still complete verification to confirm
+your identity.
+
+Microsoft Account Security Team
+Microsoft Corporation
+One Microsoft Way
+Redmond, WA 98052
+
+© 2026 Microsoft Corporation. All rights reserved.
+Privacy Statement | Terms of Service
+
+----------------------------------------------------------------
+Note: Do not reply to this email. For support, contact:
+support-recovery@gmail.com
+----------------------------------------------------------------
+
+--- END OF EMAIL ---
